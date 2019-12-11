@@ -8,4 +8,4 @@ library(shiny)
 runGitHub("tsp-ts", "rodrigovmoraes", ref="TSP-TS")
 ```
 
-![](http://images.rapgenius.com/0e1ca854cbc30f33abc46108f2ba38f2.640x640x42.gif)
+![](https://github.com/rodrigovmoraes/tsp-ts/blob/TSP-TS/screenshot.gif?raw=true)
