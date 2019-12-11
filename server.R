@@ -42,7 +42,7 @@ shinyServer(function(input, output, session) {
   
   set_cities_randomly = observe({
     if (set_random_cities() == 0 & map_name() == "world") return()
-    run_annealing_process$suspend()
+    run_tabu_searching_process$suspend()
     
     isolate({
       if (map_name() == "world") {
@@ -60,7 +60,7 @@ shinyServer(function(input, output, session) {
   
   set_cities_from_selected = observe({
     if (input$go_button == 0) return()
-    run_annealing_process$suspend()
+    run_tabu_searching_process$suspend()
     
     isolate({
       cty = subset(city_choices(), full.name %in% input$cities)
@@ -85,40 +85,38 @@ shinyServer(function(input, output, session) {
     })
   }, priority=40)
   
-  setup_to_run_annealing_process = observe({
+  setup_to_run_tabu_searching_process = observe({
     input$go_button
     set_random_cities()
     map_name()
-    
     isolate({
+      resetTabuList()
       vals$tour = sample(nrow(vals$cities))
       vals$tour_distance = calculate_tour_distance(vals$tour, vals$distance_matrix)
       vals$best_tour = c()
       vals$best_distance = Inf
 
-      vals$s_curve_amplitude = ensure_between(input$s_curve_amplitude, 0, 1000000)
-      vals$s_curve_center = ensure_between(input$s_curve_center, -1000000, 1000000)
-      vals$s_curve_width = ensure_between(input$s_curve_width, 1, 1000000)
-      vals$total_iterations = ensure_between(input$total_iterations, 1, 1000000)
-      vals$plot_every_iterations = ensure_between(input$plot_every_iterations, 1, 1000000)
-      
+      vals$total_iterations = ensure_between(input$total_iterations, 0, 1000)
+      vals$plot_every_iterations = ensure_between(input$plot_every_iterations, 1, 1000)
+      vals$tabu_expiration = ensure_between(input$tabu_expiration, 1, 50)
+      setTabuExpiration(vals$tabu_expiration)
       vals$number_of_loops = ceiling(vals$total_iterations / vals$plot_every_iterations)
       vals$distances = rep(NA, vals$number_of_loops)
       
       vals$iter = 0
     })
     
-    run_annealing_process$resume()
+    run_tabu_searching_process$resume()
   }, priority=20)
   
-  run_annealing_process = observe({
+  run_tabu_searching_process = observe({
     qry = parseQueryString(session$clientData$url_search)
     if (input$go_button == 0 & is.null(qry$auto)) return()
     
     if (nrow(isolate(vals$cities)) < 2) return()
     
     isolate({
-      intermediate_results = run_intermediate_annealing_process(
+      intermediate_results = run_tabu_intermediate_searching_process(
                                cities = vals$cities,
                                distance_matrix = vals$distance_matrix,
                                tour = vals$tour,
@@ -126,10 +124,7 @@ shinyServer(function(input, output, session) {
                                best_tour = vals$best_tour,
                                best_distance = vals$best_distance,
                                starting_iteration = vals$iter,
-                               number_of_iterations = vals$plot_every_iterations,
-                               s_curve_amplitude = vals$s_curve_amplitude,
-                               s_curve_center = vals$s_curve_center,
-                               s_curve_width = vals$s_curve_width
+                               number_of_iterations = vals$plot_every_iterations
                              )
       
       vals$tour = intermediate_results$tour
@@ -158,23 +153,13 @@ shinyServer(function(input, output, session) {
     if (length(vals$tour) > 1) {
       pretty_dist = prettyNum(vals$tour_distance, big.mark=",", digits=0, scientific=FALSE)
       pretty_iter = prettyNum(vals$iter, big.mark=",", digits=0, scientific=FALSE)
-      pretty_temp = prettyNum(current_temperature(vals$iter, vals$s_curve_amplitude, vals$s_curve_center, vals$s_curve_width),
-                              big.mark=",", digits=0, scientific=FALSE)
-      
       plot_title = paste0("Distance: ", pretty_dist, " miles\n",
-                          "Iterations: ", pretty_iter, "\n",
-                          "Temperature: ", pretty_temp)
+                          "Iterations: ", pretty_iter)
                           
       title(plot_title)
     }
   }, height=550)
   
-  output$annealing_schedule = renderPlot({
-    xvals = seq(from=0, to=vals$total_iterations, length.out=100)
-    yvals = current_temperature(xvals, vals$s_curve_amplitude, vals$s_curve_center, vals$s_curve_width)
-    plot(xvals, yvals, type='l', xlab="iterations", ylab="temperature", main="Annealing Schedule")
-    points(vals$iter, current_temperature(vals$iter, vals$s_curve_amplitude, vals$s_curve_center, vals$s_curve_width), pch=19, col='red')
-  }, height=260)
   
   output$distance_results = renderPlot({
     if (all(is.na(vals$distances))) return()
@@ -186,7 +171,7 @@ shinyServer(function(input, output, session) {
   }, height=260)
   
   session$onSessionEnded(function() {
-    run_annealing_process$suspend()
+    run_tabu_searching_process$suspend()
     set_cities_randomly$suspend()
   })
 })

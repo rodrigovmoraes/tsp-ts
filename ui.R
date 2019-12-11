@@ -7,7 +7,7 @@ shinyUI(fluidPage(
     tags$link(rel="stylesheet", type="text/css", href="custom_styles.css")
   ),
   
-  title = "Traveling Salesman with Simulated Annealing, Shiny, and R",
+  title = "Traveling Salesman with Tabu Search Algorithm, Shiny, and R",
   
   tags$h2(tags$a(href="/traveling-salesman", "Traveling Salesman", target="_blank")),
   
@@ -17,7 +17,7 @@ shinyUI(fluidPage(
     column(5,
       tags$ol(
         tags$li("Customize the list of cities, based on the world or US map"),
-        tags$li("Adjust simulated annealing parameters to taste"),
+        tags$li("Adjust tabu search parameters to taste"),
         tags$li("Click the 'solve' button!")
       )
     ),
@@ -46,19 +46,16 @@ shinyUI(fluidPage(
     ),
     
     column(2,
-      h4("Simulated Annealing Parameters"),
+      h4("Tabu Searching Parameters"),
       inputPanel(
-        numericInput("s_curve_amplitude", "S-curve Amplitude", 4000, min=0, max=10000000),
-        numericInput("s_curve_center", "S-curve Center", 0, min=-1000000, max=1000000),
-        numericInput("s_curve_width", "S-curve Width", 3000, min=1, max=1000000),
-        numericInput("total_iterations", "Number of Iterations to Run", 25000, min=0, max=1000000),
-        numericInput("plot_every_iterations", "Draw Map Every N Iterations", 1000, min=1, max=1000000)
+        numericInput("total_iterations", "Number of Iterations to Run", 50, min=0, max=1000),
+        numericInput("plot_every_iterations", "Draw Map Every N Iterations", 5, min=1, max=1000),
+        numericInput("tabu_expiration", "Choose the Tabu expiration (in numbers of iterations)", 5, min=1, max=50)
       ),
       class="numeric-inputs"
     ),
     
     column(5,
-      plotOutput("annealing_schedule", height="260px"),
       plotOutput("distance_results", height="260px")
     )
   )
