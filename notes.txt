@@ -1,0 +1,13 @@
+- git clone
+
+https://github.com/rodrigovmoraes/tsp-ts.git
+
+- git repository url:
+
+https://github.com/rodrigovmoraes/tsp-ts.git
+
+- run in R console:
+
+install.packages(c("shiny", "maps", "geosphere"), repos="http://cran.rstudio.com/")
+library(shiny)
+runGitHub("tsp-ts", "rodrigovmoraes", ref="TSP-TS")
