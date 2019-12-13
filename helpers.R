@@ -128,9 +128,7 @@ get_neighborhood = function(current_tour) {
     for (i in 1:(length(current_tour) - 1)) {
       for(j in (i+1):length(current_tour)) {
         candidate = current_tour
-        aux = candidate[i]
-        candidate[i] = candidate[j]
-        candidate[j] = aux
+        candidate[i:j] = rev(candidate[i:j])
         #insert candidate to neighborhood list, 
         #store with the candidate i, j swap positions that generated the candidate
         items = append(items, list(list(candidate, i, j) )) #use items[[k]][[1]] to retrieve k-candidate
