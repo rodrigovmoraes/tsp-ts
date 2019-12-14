@@ -128,12 +128,14 @@ get_neighborhood = function(current_tour) {
     for (i in 1:(length(current_tour) - 1)) {
       for(j in (i+1):length(current_tour)) {
         candidate = current_tour
+        edge_i = candidate[i]
+        edge_j = candidate[j]
         candidate[i:j] = rev(candidate[i:j])
         #insert candidate to neighborhood list, 
         #store with the candidate i, j swap positions that generated the candidate
-        items = append(items, list(list(candidate, i, j) )) #use items[[k]][[1]] to retrieve k-candidate
-                                                            #use items[[k]][[2]] to retrieve the first swap position used to generate the k-candidate
-                                                            #use items[[k]][[3]] to retrieve the second swap position used to generate the k-candidate
+        items = append(items, list(list(candidate, edge_i, edge_j) )) #use items[[k]][[1]] to retrieve k-candidate
+                                                                      #use items[[k]][[2]] to retrieve the first city in swap used to generate the k-candidate
+                                                                      #use items[[k]][[3]] to retrieve the second city used to generate the k-candidate
       }
     }
   }
@@ -156,18 +158,18 @@ run_tabu_intermediate_searching_process = function(cities, distance_matrix, tour
       best_candidate_tour = list()
       best_candidate_tour_distance = Inf
       best_candidate_tour_found = FALSE  
-      best_candidate_tour_i = 0
-      best_candidate_tour_j = 0
+      best_candidate_tour_city_i = 0
+      best_candidate_tour_city_j = 0
       if (length(candidates) > 0) {
         for (k in 1:length(candidates)) {
           candidate_tour = candidates[[k]][[1]]
-          candidate_tour_i = candidates[[k]][[2]] #first swap position used to generate the candidate
-          candidate_tour_j = candidates[[k]][[3]] #second swap position used to generate the candidate
+          candidate_tour_city_i = candidates[[k]][[2]] #first city in swap used to generate the candidate
+          candidate_tour_city_j = candidates[[k]][[3]] #second city in swap used to generate the candidate
           candidate_tour_distance = calculate_tour_distance(candidate_tour, distance_matrix)
-          if(!check_if_is_tabu(tabu_list, candidate_tour_i, candidate_tour_j, tabu_list_max_size) && candidate_tour_distance < best_candidate_tour_distance) {
+          if(!check_if_is_tabu(tabu_list, candidate_tour_city_i, candidate_tour_city_j, tabu_list_max_size) && candidate_tour_distance < best_candidate_tour_distance) {
             best_candidate_tour = candidate_tour
-            best_candidate_tour_i = candidate_tour_i
-            best_candidate_tour_j = candidate_tour_j
+            best_candidate_tour_city_i = candidate_tour_city_i
+            best_candidate_tour_city_j = candidate_tour_city_j
             best_candidate_tour_distance = candidate_tour_distance
             best_candidate_tour_found = TRUE
           }
@@ -177,7 +179,7 @@ run_tabu_intermediate_searching_process = function(cities, distance_matrix, tour
       if (best_candidate_tour_found) {
         tour = best_candidate_tour
         tour_distance = best_candidate_tour_distance
-        tabu_list[best_candidate_tour_i, best_candidate_tour_j] <<- tabu_list_item_expiration
+        tabu_list[best_candidate_tour_city_i, best_candidate_tour_city_j] <<- tabu_list_item_expiration
         if (tour_distance < best_distance) {
           best_tour = tour
           best_distance = tour_distance
